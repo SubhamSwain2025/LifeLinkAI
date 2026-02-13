@@ -10,12 +10,18 @@ st.markdown("""
         }
         iframe {
             width: 100% !important;
-            height: 100vh !important;
+            height: 100% !important;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Hide Streamlit UI
+# Load HTML
+with open("start.html", "r", encoding="utf-8") as f:
+    html_content = f.read()
+
+st.components.v1.html(html_content, height=900, scrolling=True)
+
+# hide toolbar
 hide_streamlit_style = """
 <style>
 #MainMenu {visibility: hidden;}
@@ -24,9 +30,3 @@ header {visibility: hidden;}
 </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# Load HTML
-with open("start.html", "r", encoding="utf-8") as f:
-    html_content = f.read()
-
-st.components.v1.html(html_content, height=1000, scrolling=True)
