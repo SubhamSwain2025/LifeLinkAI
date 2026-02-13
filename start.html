@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeLink AI - Smart Emergency Hospital Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#0a0f1a',
+                        card: '#111827',
+                        border: '#1f2937',
+                        accent: '#dc2626',
+                        accentLight: '#ef4444',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        muted: '#6b7280',
+                        surface: '#1a2332'
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        body: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #0a0f1a;
+            --card: #111827;
+            --accent: #dc2626;
+            --success: #10b981;
+            --glow: rgba(220, 38, 38, 0.4);
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--card);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+
+        .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Animated Background */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(220, 38, 38, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(16, 185, 129, 0.1), transparent),
+                linear-gradient(180deg, #0a0f1a 0%, #0d1424 100%);
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(220, 38, 38, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(220, 38, 38, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        /* SOS Button */
+        .sos-btn {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 
+                0 0 60px rgba(220, 38, 38, 0.5),
+                0 0 100px rgba(220, 38, 38, 0.3),
+                inset 0 2px 20px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sos-btn::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            border: 2px solid rgba(220, 38, 38, 0.5);
+            animation: sosPulse 2s ease-out infinite;
+        }
+
+        .sos-btn::after {
+            content: '';
+            position: absolute;
+            inset: -25px;
+            border-radius: 50%;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            animation: sosPulse 2s ease-out infinite 0.5s;
+        }
+
+        @keyframes sosPulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .sos-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 0 80px rgba(220, 38, 38, 0.7),
+                0 0 120px rgba(220, 38, 38, 0.4),
+                inset 0 2px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .sos-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Card Styles */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(26, 35, 50, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(17, 24, 39, 0.9) 100%);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        /* Navigation */
+        .nav-item {
+            position: relative;
+            padding: 12px 20px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            background: rgba(220, 38, 38, 0.15);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: #dc2626;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-item:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        /* Hospital Card */
+        .hospital-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hospital-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(220, 38, 38, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .hospital-card.recommended {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(17, 24, 39, 0.95) 100%);
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* Map Container */
+        .map-container {
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(16, 185, 129, 0.2) 0%, transparent 30%),
+                radial-gradient(circle at 70% 60%, rgba(220, 38, 38, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 30%),
+                linear-gradient(180deg, #0d1424 0%, #0a0f1a 100%);
+        }
+
+        /* Ambulance Animation */
+        .ambulance-marker {
+            animation: ambulanceMove 3s ease-in-out infinite;
+        }
+
+        @keyframes ambulanceMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -10px); }
+        }
+
+        /* Entrance Animations */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+
+        /* Heatmap */
+        .heatmap-dot {
+            position: absolute;
+            border-radius: 50%;
+            animation: heatPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes heatPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Language Selector */
+        .lang-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: rgba(220, 38, 38, 0.2);
+            color: #ef4444;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sos-btn {
+                width: 160px;
+                height: 160px;
+            }
+        }
+
+        /* Button Focus States */
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid #ef4444;
+            outline-offset: 2px;
+        }
+
+        /* Chart Bars */
+        .chart-bar {
+            transition: height 0.5s ease;
+        }
+
+        /* Status Indicator */
+        .status-live {
+            position: relative;
+        }
+
+        .status-live::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: statusBlink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <div class="bg-pattern"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border rounded-none">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-red-800 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-xl tracking-tight">LifeLink AI</h1>
+                    <p class="text-xs text-muted">Emergency Response Network</p>
+                </div>
+            </div>
+
+            <!-- Language Selector -->
+            <div class="hidden md:flex items-center gap-2 bg-surface px-2 py-1 rounded-lg">
+                <button class="lang-btn active" data-lang="en">English</button>
+                <button class="lang-btn text-gray-400" data-lang="hi">हिंदी</button>
+                <button class="lang-btn text-gray-400" data-lang="or">ଓଡ଼ିଆ</button>
+            </div>
+
+            <!-- User Profile -->
+            <div class="flex items-center gap-3">
+                <button class="p-2 rounded-lg hover:bg-surface transition-colors" aria-label="Notifications">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full"></span>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-sm font-semibold cursor-pointer">
+                    RS
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16">
+        <!-- Sidebar Navigation -->
+        <nav class="fixed left-0 top-16 bottom-0 w-64 glass-card border-r border-border p-4 hidden lg:block overflow-y-auto">
+            <div class="space-y-2">
+                <div class="nav-item active flex items-center gap-3 text-white" data-tab="emergency">
+                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span class="font-medium">Emergency SOS</span>
+                </div>
+                <div class="nav-item flex items-center gap-3 text-gray-400" data-tab="hospitals">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span class="font-medium">Find Hospitals</span>
+                </div>
+                <div class="nav-item flex items-center gap-3 text-gray-400" data-tab="ambulance">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span class="font-medium">Ambulance Track</span>
+                </div>
+                <div class="nav-item flex items-center gap-3 text-gray-400" data-tab="profile">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <span class="font-medium">Patient Profile</span>
+                </div>
+                <div class="nav-item flex items-center gap-3 text-gray-400" data-tab="admin">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="font-medium">Admin Dashboard</span>
+                </div>
+                <div class="nav-item flex items-center gap-3 text-gray-400" data-tab="government">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                    </svg>
+                    <span class="font-medium">Government View</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="mt-8 p-4 rounded-xl bg-surface border border-border">
+                <h4 class="text-xs text-muted uppercase tracking-wider mb-3">System Status</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-300">Hospitals Online</span>
+                        <span class="text-sm font-semibold text-success">47/52</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-300">Ambulances Active</span>
+                        <span class="text-sm font-semibold text-success">128</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-300">Avg Response</span>
+                        <span class="text-sm font-semibold text-warning">8.2 min</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-64 p-4 md:p-6 lg:p-8">
+            <!-- Emergency Tab -->
+            <div id="tab-emergency" class="tab-content active">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Emergency Header -->
+                    <div class="text-center mb-8 fade-up">
+                        <h2 class="font-display text-3xl md:text-4xl font-bold mb-2">Emergency Response</h2>
+                        <p class="text-gray-400">Press the button below to activate emergency mode</p>
+                    </div>
+
+                    <!-- SOS Button -->
+                    <div class="flex justify-center mb-12 fade-up stagger-1">
+                        <div class="relative">
+                            <button id="sosButton" class="sos-btn flex flex-col items-center justify-center text-white" aria-label="Emergency SOS Button">
+                                <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                                <span class="font-display font-bold text-2xl">SOS</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Type Selection -->
+                    <div class="glass-card p-6 mb-6 fade-up stagger-2">
+                        <h3 class="font-display font-semibold text-lg mb-4">Select Emergency Type</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button class="emergency-type p-4 rounded-xl bg-surface border border-border hover:border-accent transition-all text-center" data-type="cardiac">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-red-500/20 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">Cardiac</span>
+                            </button>
+                            <button class="emergency-type p-4 rounded-xl bg-surface border border-border hover:border-accent transition-all text-center" data-type="accident">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-orange-500/20 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">Accident</span>
+                            </button>
+                            <button class="emergency-type p-4 rounded-xl bg-surface border border-border hover:border-accent transition-all text-center" data-type="respiratory">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">Respiratory</span>
+                            </button>
+                            <button class="emergency-type p-4 rounded-xl bg-surface border border-border hover:border-accent transition-all text-center" data-type="other">
+                                <div class="w-12 h-12 mx-auto mb-2 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-medium">Other</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Current Location -->
+                    <div class="glass-card p-6 mb-6 fade-up stagger-3">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display font-semibold text-lg">Your Location</h3>
+                            <span class="status-live text-sm text-success">Live</span>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium">Bhubaneswar, Odisha</p>
+                                <p class="text-sm text-gray-400">20.2961° N, 85.8245° E</p>
+                                <p class="text-xs text-muted mt-1">GPS accuracy: 12 meters</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contacts Alert -->
+                    <div class="glass-card p-6 border-l-4 border-accent fade-up stagger-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">Emergency Contacts Will Be Notified</h4>
+                                <p class="text-sm text-gray-400 mb-3">When SOS is activated, the following contacts will receive your location and hospital details:</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-surface text-sm">Sunita Devi (Mother)</span>
+                                    <span class="px-3 py-1 rounded-full bg-surface text-sm">Rajesh Kumar (Brother)</span>
+                                    <span class="px-3 py-1 rounded-full bg-surface text-sm">Dr. Amit Sharma</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hospitals Tab -->
+            <div id="tab-hospitals" class="tab-content">
+                <!-- AI Recommendation Banner -->
+                <div class="glass-card p-6 mb-6 border-l-4 border-success fade-up">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs px-2 py-1 rounded-full bg-success/20 text-success font-medium">AI RECOMMENDED</span>
+                            </div>
+                            <h3 class="font-display font-semibold text-lg">Best Option: Kalinga Institute Hospital</h3>
+                            <p class="text-gray-400 text-sm mt-1">3.2 km away • ICU Available • 4.8★ Rating • 7 min ETA (Low Traffic)</p>
+                            <div class="flex gap-2 mt-3">
+                                <button class="px-4 py-2 rounded-lg bg-success text-white font-medium text-sm hover:bg-emerald-600 transition-colors">Book Now</button>
+                                <button class="px-4 py-2 rounded-lg bg-surface border border-border text-sm hover:border-success transition-colors">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-3 mb-6 fade-up stagger-1">
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-accent text-white text-sm font-medium">All</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-surface border border-border text-sm">ICU Available</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-surface border border-border text-sm">Under 5km</button>
+                    <button class="filter-btn px-4 py-2 rounded-lg bg-surface border border-border text-sm">24/7 Emergency</button>
+                </div>
+
+                <!-- Hospital List -->
+                <div class="space-y-4" id="hospitalList">
+                    <!-- Hospitals will be rendered here -->
+                </div>
+
+                <!-- Crowd Alert -->
+                <div class="glass-card p-4 mt-6 border border-warning/30 bg-warning/5 fade-up">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <p class="text-sm"><span class="font-semibold text-warning">Crowd Alert:</span> Capital Hospital is currently at 95% capacity. AI suggests alternative: AIIMS Bhubaneswar (12 beds available)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ambulance Tab -->
+            <div id="tab-ambulance" class="tab-content">
+                <div class="grid lg:grid-cols-3 gap-6">
+                    <!-- Map -->
+                    <div class="lg:col-span-2 glass-card overflow-hidden fade-up">
+                        <div class="p-4 border-b border-border flex items-center justify-between">
+                            <h3 class="font-display font-semibold">Live Tracking</h3>
+                            <span class="status-live text-sm text-success">Live</span>
+                        </div>
+                        <div class="map-container h-80 md:h-96 relative">
+                            <!-- Simulated Map -->
+                            <div class="absolute inset-0 p-4">
+                                <!-- Roads -->
+                                <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-700"></div>
+                                <div class="absolute top-0 bottom-0 left-1/3 w-1 bg-gray-700"></div>
+                                <div class="absolute top-0 bottom-0 right-1/4 w-1 bg-gray-700"></div>
+                                
+                                <!-- Hospital Marker -->
+                                <div class="absolute top-1/4 right-1/4 transform -translate-x-1/2 -translate-y-1/2">
+                                    <div class="w-8 h-8 rounded-full bg-success flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs text-success mt-1 font-medium">Hospital</p>
+                                </div>
+
+                                <!-- User Location -->
+                                <div class="absolute bottom-1/4 left-1/4 transform -translate-x-1/2 -translate-y-1/2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center">
+                                        <div class="w-2 h-2 rounded-full bg-white"></div>
+                                    </div>
+                                    <p class="text-xs text-blue-400 mt-1">You</p>
+                                </div>
+
+                                <!-- Ambulance -->
+                                <div class="ambulance-marker absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <div class="w-10 h-10 rounded-lg bg-accent flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <!-- Route Line -->
+                                <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                                    <path d="M 96 288 Q 200 200 300 150" stroke="rgba(220, 38, 38, 0.5)" stroke-width="3" fill="none" stroke-dasharray="10 5"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ambulance Details -->
+                    <div class="space-y-4 fade-up stagger-1">
+                        <!-- ETA Card -->
+                        <div class="glass-card p-6 text-center">
+                            <p class="text-muted text-sm mb-2">Estimated Arrival</p>
+                            <p class="font-display text-5xl font-bold text-accent">7:24</p>
+                            <p class="text-sm text-gray-400 mt-2">minutes : seconds</p>
+                        </div>
+
+                        <!-- Ambulance Info -->
+                        <div class="glass-card p-6">
+                            <h4 class="font-display font-semibold mb-4">Ambulance Details</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Vehicle No.</span>
+                                    <span class="font-medium">OD-05-AB-1234</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Driver</span>
+                                    <span class="font-medium">Ramesh Patel</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Type</span>
+                                    <span class="font-medium text-success">Advanced Life Support</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Distance</span>
+                                    <span class="font-medium">2.4 km away</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-border">
+                                <button class="w-full py-3 rounded-lg bg-accent text-white font-medium hover:bg-red-700 transition-colors">Call Driver</button>
+                            </div>
+                        </div>
+
+                        <!-- Status Timeline -->
+                        <div class="glass-card p-6">
+                            <h4 class="font-display font-semibold mb-4">Status Updates</h4>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-success mt-1"></div>
+                                    <div>
+                                        <p class="text-sm font-medium">Dispatched</p>
+                                        <p class="text-xs text-muted">2:34 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-success mt-1"></div>
+                                    <div>
+                                        <p class="text-sm font-medium">En Route</p>
+                                        <p class="text-xs text-muted">2:36 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="w-3 h-3 rounded-full bg-warning mt-1 animate-pulse"></div>
+                                    <div>
+                                        <p class="text-sm font-medium text-warning">Approaching</p>
+                                        <p class="text-xs text-muted">Now</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="tab-profile" class="tab-content">
+                <div class="max-w-3xl mx-auto">
+                    <!-- Profile Header -->
+                    <div class="glass-card p-6 mb-6 fade-up">
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-accent to-red-800 flex items-center justify-center text-2xl font-bold">
+                                RS
+                            </div>
+                            <div class="flex-1">
+                                <h2 class="font-display text-2xl font-bold">Rahul Sharma</h2>
+                                <p class="text-gray-400">ID: LIF-2024-78542</p>
+                            </div>
+                            <button class="p-2 rounded-lg hover:bg-surface transition-colors" aria-label="Edit Profile">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Medical Info -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6 fade-up stagger-1">
+                            <h3 class="font-display font-semibold mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                </svg>
+                                Medical Information
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center py-2 border-b border-border">
+                                    <span class="text-gray-400">Blood Group</span>
+                                    <span class="font-semibold text-accent">O+</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-border">
+                                    <span class="text-gray-400">Age</span>
+                                    <span class="font-medium">32 years</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-border">
+                                    <span class="text-gray-400">Weight</span>
+                                    <span class="font-medium">72 kg</span>
+                                </div>
+                                <div class="py-2">
+                                    <span class="text-gray-400 block mb-2">Allergies</span>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm">Penicillin</span>
+                                        <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm">Sulfa</span>
+                                    </div>
+                                </div>
+                                <div class="py-2">
+                                    <span class="text-gray-400 block mb-2">Chronic Conditions</span>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 rounded-full bg-warning/20 text-warning text-sm">Hypertension</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Emergency Contacts -->
+                            <div class="glass-card p-6 fade-up stagger-2">
+                                <h3 class="font-display font-semibold mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    Emergency Contacts
+                                </h3>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 rounded-lg bg-surface">
+                                        <div>
+                                            <p class="font-medium">Sunita Devi</p>
+                                            <p class="text-sm text-gray-400">Mother</p>
+                                        </div>
+                                        <span class="text-sm text-muted">+91 98765 43210</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 rounded-lg bg-surface">
+                                        <div>
+                                            <p class="font-medium">Rajesh Kumar</p>
+                                            <p class="text-sm text-gray-400">Brother</p>
+                                        </div>
+                                        <span class="text-sm text-muted">+91 87654 32109</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Insurance -->
+                            <div class="glass-card p-6 fade-up stagger-3">
+                                <h3 class="font-display font-semibold mb-4 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                    </svg>
+                                    Insurance Details
+                                </h3>
+                                <div class="p-4 rounded-lg bg-surface border border-border">
+                                    <p class="font-medium">Star Health Insurance</p>
+                                    <p class="text-sm text-gray-400">Policy: SHI-2024-123456</p>
+                                    <p class="text-sm text-success mt-2">Coverage: Rs. 5,00,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="tab-admin" class="tab-content">
+                <div class="grid lg:grid-cols-4 gap-6 mb-6">
+                    <!-- Stats -->
+                    <div class="stat-card glass-card p-6 fade-up">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-muted text-sm">Total Beds</span>
+                            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6z"/>
+                            </svg>
+                        </div>
+                        <p class="font-display text-3xl font-bold">350</p>
+                        <p class="text-sm text-success mt-1">+12 from yesterday</p>
+                    </div>
+                    <div class="glass-card p-6 fade-up stagger-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-muted text-sm">Available</span>
+                            <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <p class="font-display text-3xl font-bold text-success">87</p>
+                        <p class="text-sm text-muted mt-1">24.8% occupancy</p>
+                    </div>
+                    <div class="glass-card p-6 fade-up stagger-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-muted text-sm">ICU Beds</span>
+                            <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </div>
+                        <p class="font-display text-3xl font-bold">45</p>
+                        <p class="text-sm text-warning mt-1">8 available</p>
+                    </div>
+                    <div class="glass-card p-6 fade-up stagger-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-muted text-sm">Emergency Today</span>
+                            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <p class="font-display text-3xl font-bold">23</p>
+                        <p class="text-sm text-accent mt-1">3 critical</p>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Bed Management -->
+                    <div class="glass-card p-6 fade-up stagger-4">
+                        <h3 class="font-display font-semibold mb-4">Bed Management</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 rounded-lg bg-surface">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                                        <span class="text-success font-bold">G</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">General Ward</p>
+                                        <p class="text-sm text-muted">120 beds</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-success">42</p>
+                                    <p class="text-xs text-muted">available</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-lg bg-surface">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
+                                        <span class="text-warning font-bold">I</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">ICU</p>
+                                        <p class="text-sm text-muted">45 beds</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-warning">8</p>
+                                    <p class="text-xs text-muted">available</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-4 rounded-lg bg-surface">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                        <span class="text-blue-400 font-bold">V</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">Ventilator</p>
+                                        <p class="text-sm text-muted">25 units</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-blue-400">5</p>
+                                    <p class="text-xs text-muted">available</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 py-3 rounded-lg bg-surface border border-border text-sm font-medium hover:border-accent transition-colors">Update Availability</button>
+                    </div>
+
+                    <!-- Daily Trends -->
+                    <div class="glass-card p-6 fade-up stagger-5">
+                        <h3 class="font-display font-semibold mb-4">Admission Trends (This Week)</h3>
+                        <div class="h-48 flex items-end justify-between gap-2">
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent/60 rounded-t" style="height: 60%"></div>
+                                <span class="text-xs text-muted mt-2">Mon</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent/60 rounded-t" style="height: 45%"></div>
+                                <span class="text-xs text-muted mt-2">Tue</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent/60 rounded-t" style="height: 75%"></div>
+                                <span class="text-xs text-muted mt-2">Wed</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent/60 rounded-t" style="height: 55%"></div>
+                                <span class="text-xs text-muted mt-2">Thu</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent/60 rounded-t" style="height: 90%"></div>
+                                <span class="text-xs text-muted mt-2">Fri</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-accent rounded-t" style="height: 80%"></div>
+                                <span class="text-xs text-muted mt-2">Sat</span>
+                            </div>
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="chart-bar w-full bg-success/60 rounded-t" style="height: 40%"></div>
+                                <span class="text-xs text-muted mt-2">Sun</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Government Tab -->
+            <div id="tab-government" class="tab-content">
+                <div class="grid lg:grid-cols-3 gap-6 mb-6">
+                    <div class="lg:col-span-2 glass-card overflow-hidden fade-up">
+                        <div class="p-4 border-b border-border">
+                            <h3 class="font-display font-semibold">City-Wide Emergency Heatmap</h3>
+                            <p class="text-sm text-muted">Real-time emergency load across Bhubaneswar</p>
+                        </div>
+                        <div class="map-container h-80 relative">
+                            <!-- Heatmap Visualization -->
+                            <div class="heatmap-dot w-20 h-20 bg-red-500/40" style="top: 20%; left: 30%"></div>
+                            <div class="heatmap-dot w-32 h-32 bg-red-500/30" style="top: 40%; left: 50%"></div>
+                            <div class="heatmap-dot w-16 h-16 bg-orange-500/40" style="top: 60%; left: 25%"></div>
+                            <div class="heatmap-dot w-24 h-24 bg-yellow-500/30" style="top: 30%; left: 70%"></div>
+                            <div class="heatmap-dot w-28 h-28 bg-red-500/35" style="top: 70%; left: 60%"></div>
+                            
+                            <!-- Zone Labels -->
+                            <div class="absolute top-4 left-4 px-3 py-1 rounded-full bg-surface text-xs">
+                                Zone A: <span class="text-accent font-semibold">High Load</span>
+                            </div>
+                            <div class="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-surface text-xs">
+                                Zone D: <span class="text-success font-semibold">Normal</span>
+                            </div>
+
+                            <!-- Legend -->
+                            <div class="absolute bottom-4 left-4 p-3 rounded-lg bg-surface/80 backdrop-blur">
+                                <p class="text-xs font-medium mb-2">Emergency Density</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 rounded bg-green-500/50"></div>
+                                    <span class="text-xs">Low</span>
+                                    <div class="w-4 h-4 rounded bg-yellow-500/50"></div>
+                                    <span class="text-xs">Med</span>
+                                    <div class="w-4 h-4 rounded bg-red-500/50"></div>
+                                    <span class="text-xs">High</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Prediction Alert -->
+                        <div class="glass-card p-6 border-l-4 border-warning fade-up stagger-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                <span class="text-xs px-2 py-1 rounded-full bg-warning/20 text-warning font-medium">AI PREDICTION</span>
+                            </div>
+                            <h4 class="font-semibold">Expected Spike</h4>
+                            <p class="text-sm text-gray-400 mt-1">Respiratory emergencies expected to increase 35% in next 48 hours due to air quality deterioration.</p>
+                        </div>
+
+                        <!-- City Stats -->
+                        <div class="glass-card p-6 fade-up stagger-2">
+                            <h4 class="font-display font-semibold mb-4">City Overview</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-400">Bed Occupancy</span>
+                                        <span class="font-semibold">68%</span>
+                                    </div>
+                                    <div class="h-2 rounded-full bg-surface overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-success to-warning" style="width: 68%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="text-gray-400">ICU Capacity</span>
+                                        <span class="font-semibold text-warning">82%</span>
+                                    </div>
+                                    <div class="h-2 rounded-full bg-surface overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-warning to-accent" style="width: 82%"></div>
+                                    </div>
+                                </div>
+                                <div class="pt-4 border-t border-border">
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-400">Active Emergencies</span>
+                                        <span class="font-semibold text-accent">47</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ML Predictions -->
+                <div class="glass-card p-6 fade-up stagger-3">
+                    <h3 class="font-display font-semibold mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        AI Demand Prediction (Next 7 Days)
+                    </h3>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-xl bg-surface text-center">
+                            <p class="text-muted text-sm mb-1">General Beds</p>
+                            <p class="font-display text-2xl font-bold text-success">+12%</p>
+                            <p class="text-xs text-muted mt-1">Expected demand</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-surface text-center">
+                            <p class="text-muted text-sm mb-1">ICU Demand</p>
+                            <p class="font-display text-2xl font-bold text-warning">+28%</p>
+                            <p class="text-xs text-muted mt-1">Critical care</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-surface text-center">
+                            <p class="text-muted text-sm mb-1">Peak Hours</p>
+                            <p class="font-display text-2xl font-bold">6-9 PM</p>
+                            <p class="text-xs text-muted mt-1">Highest traffic</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-surface text-center">
+                            <p class="text-muted text-sm mb-1">Confidence</p>
+                            <p class="font-display text-2xl font-bold text-success">94.2%</p>
+                            <p class="text-xs text-muted mt-1">Model accuracy</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-card border-t border-border p-2 lg:hidden z-50">
+        <div class="flex justify-around">
+            <button class="mobile-nav-item flex flex-col items-center p-2 text-accent" data-tab="emergency">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span class="text-xs mt-1">SOS</span>
+            </button>
+            <button class="mobile-nav-item flex flex-col items-center p-2 text-gray-400" data-tab="hospitals">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span class="text-xs mt-1">Hospitals</span>
+            </button>
+            <button class="mobile-nav-item flex flex-col items-center p-2 text-gray-400" data-tab="ambulance">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span class="text-xs mt-1">Ambulance</span>
+            </button>
+            <button class="mobile-nav-item flex flex-col items-center p-2 text-gray-400" data-tab="profile">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <span class="text-xs mt-1">Profile</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SOS Modal -->
+    <div id="sosModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="glass-card p-8 max-w-md w-full text-center">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-accent flex items-center justify-center animate-pulse">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+            </div>
+            <h2 class="font-display text-2xl font-bold mb-2">Emergency Activated</h2>
+            <p class="text-gray-400 mb-6">Alerting nearby hospitals and emergency contacts...</p>
+            
+            <div class="space-y-3 text-left mb-6">
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-surface">
+                    <div class="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm">Location shared with 3 hospitals</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-surface">
+                    <div class="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm">Ambulance dispatched (ETA: 7 min)</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-surface">
+                    <div class="w-8 h-8 rounded-full bg-warning/20 flex items-center justify-center animate-pulse">
+                        <svg class="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm">Notifying emergency contacts...</span>
+                </div>
+            </div>
+
+            <button id="cancelSos" class="w-full py-3 rounded-lg bg-surface border border-border text-sm font-medium hover:border-accent transition-colors">Cancel Emergency</button>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const hospitals = [
+            {
+                id: 1,
+                name: "Kalinga Institute Hospital",
+                distance: 3.2,
+                eta: 7,
+                rating: 4.8,
+                beds: 45,
+                icu: 8,
+                specialization: "Cardiac, Trauma",
+                traffic: "Low",
+                recommended: true,
+                coordinates: { lat: 20.3052, lng: 85.8547 }
+            },
+            {
+                id: 2,
+                name: "AIIMS Bhubaneswar",
+                distance: 5.8,
+                eta: 12,
+                rating: 4.9,
+                beds: 120,
+                icu: 25,
+                specialization: "Multi-Specialty",
+                traffic: "Moderate",
+                recommended: false,
+                coordinates: { lat: 20.2542, lng: 85.8129 }
+            },
+            {
+                id: 3,
+                name: "Capital Hospital",
+                distance: 2.1,
+                eta: 6,
+                rating: 4.2,
+                beds: 5,
+                icu: 0,
+                specialization: "General",
+                traffic: "High",
+                recommended: false,
+                crowded: true,
+                coordinates: { lat: 20.2741, lng: 85.8435 }
+            },
+            {
+                id: 4,
+                name: "Sum Hospital",
+                distance: 4.5,
+                eta: 10,
+                rating: 4.6,
+                beds: 32,
+                icu: 6,
+                specialization: "Neuro, Ortho",
+                traffic: "Low",
+                recommended: false,
+                coordinates: { lat: 20.2915, lng: 85.8672 }
+            },
+            {
+                id: 5,
+                name: "Apollo Clinics",
+                distance: 1.8,
+                eta: 5,
+                rating: 4.4,
+                beds: 18,
+                icu: 2,
+                specialization: "Emergency Care",
+                traffic: "Low",
+                recommended: false,
+                coordinates: { lat: 20.2892, lng: 85.8215 }
+            }
+        ];
+
+        // DOM Elements
+        const navItems = document.querySelectorAll('.nav-item');
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const sosButton = document.getElementById('sosButton');
+        const sosModal = document.getElementById('sosModal');
+        const cancelSos = document.getElementById('cancelSos');
+        const hospitalList = document.getElementById('hospitalList');
+        const langButtons = document.querySelectorAll('.lang-btn');
+        const emergencyTypes = document.querySelectorAll('.emergency-type');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('text-white');
+                item.classList.add('text-gray-400');
+                if (item.dataset.tab === tabName) {
+                    item.classList.add('active');
+                    item.classList.add('text-white');
+                    item.classList.remove('text-gray-400');
+                }
+            });
+
+            mobileNavItems.forEach(item => {
+                item.classList.remove('text-accent');
+                item.classList.add('text-gray-400');
+                if (item.dataset.tab === tabName) {
+                    item.classList.add('text-accent');
+                    item.classList.remove('text-gray-400');
+                }
+            });
+
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${tabName}`) {
+                    content.classList.add('active');
+                }
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => switchTab(item.dataset.tab));
+        });
+
+        mobileNavItems.forEach(item => {
+            item.addEventListener('click', () => switchTab(item.dataset.tab));
+        });
+
+        // SOS Button
+        sosButton.addEventListener('click', () => {
+            sosModal.classList.remove('hidden');
+            sosModal.classList.add('flex');
+        });
+
+        cancelSos.addEventListener('click', () => {
+            sosModal.classList.add('hidden');
+            sosModal.classList.remove('flex');
+        });
+
+        // Language Selector
+        langButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                langButtons.forEach(b => {
+                    b.classList.remove('active');
+                    b.classList.add('text-gray-400');
+                });
+                btn.classList.add('active');
+                btn.classList.remove('text-gray-400');
+            });
+        });
+
+        // Emergency Type Selection
+        emergencyTypes.forEach(type => {
+            type.addEventListener('click', () => {
+                emergencyTypes.forEach(t => t.classList.remove('border-accent', 'bg-accent/10'));
+                type.classList.add('border-accent', 'bg-accent/10');
+            });
+        });
+
+        // Filter Buttons
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-accent', 'text-white');
+                    b.classList.add('bg-surface', 'border', 'border-border');
+                });
+                btn.classList.add('bg-accent', 'text-white');
+                btn.classList.remove('bg-surface', 'border', 'border-border');
+            });
+        });
+
+        // Render Hospitals
+        function renderHospitals() {
+            if (!hospitalList) return;
+            
+            hospitalList.innerHTML = hospitals.map((hospital, index) => `
+                <div class="hospital-card glass-card p-6 ${hospital.recommended ? 'recommended' : ''} fade-up stagger-${Math.min(index + 2, 5)}">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-xl ${hospital.recommended ? 'bg-success/20' : 'bg-surface'} flex items-center justify-center">
+                                <svg class="w-7 h-7 ${hospital.recommended ? 'text-success' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h4 class="font-display font-semibold text-lg">${hospital.name}</h4>
+                                    ${hospital.recommended ? '<span class="text-xs px-2 py-0.5 rounded-full bg-success/20 text-success font-medium">AI Pick</span>' : ''}
+                                    ${hospital.crowded ? '<span class="text-xs px-2 py-0.5 rounded-full bg-warning/20 text-warning font-medium">Crowded</span>' : ''}
+                                </div>
+                                <p class="text-sm text-gray-400">${hospital.specialization}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <span class="font-semibold">${hospital.rating}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-4 mb-4">
+                        <div class="text-center p-2 rounded-lg bg-surface">
+                            <p class="text-xs text-muted mb-1">Distance</p>
+                            <p class="font-semibold">${hospital.distance} km</p>
+                        </div>
+                        <div class="text-center p-2 rounded-lg bg-surface">
+                            <p class="text-xs text-muted mb-1">ETA</p>
+                            <p class="font-semibold">${hospital.eta} min</p>
+                        </div>
+                        <div class="text-center p-2 rounded-lg ${hospital.beds < 10 ? 'bg-warning/10' : 'bg-surface'}">
+                            <p class="text-xs text-muted mb-1">Beds</p>
+                            <p class="font-semibold ${hospital.beds < 10 ? 'text-warning' : ''}">${hospital.beds}</p>
+                        </div>
+                        <div class="text-center p-2 rounded-lg ${hospital.icu === 0 ? 'bg-accent/10' : 'bg-surface'}">
+                            <p class="text-xs text-muted mb-1">ICU</p>
+                            <p class="font-semibold ${hospital.icu === 0 ? 'text-accent' : ''}">${hospital.icu}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-muted">Traffic:</span>
+                            <span class="text-sm font-medium ${hospital.traffic === 'Low' ? 'text-success' : hospital.traffic === 'High' ? 'text-accent' : 'text-warning'}">${hospital.traffic}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 rounded-lg bg-surface border border-border text-sm hover:border-accent transition-colors">Details</button>
+                            <button class="px-4 py-2 rounded-lg ${hospital.recommended ? 'bg-success hover:bg-emerald-600' : 'bg-accent hover:bg-red-700'} text-white text-sm font-medium transition-colors">Book Bed</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        renderHospitals();
+
+        // ETA Countdown
+        let etaSeconds = 444; // 7:24
+        function updateETA() {
+            const minutes = Math.floor(etaSeconds / 60);
+            const seconds = etaSeconds % 60;
+            const etaDisplay = document.querySelector('.font-display.text-5xl');
+            if (etaDisplay && etaSeconds > 0) {
+                etaDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                etaSeconds--;
+            }
+        }
+        setInterval(updateETA, 1000);
+
+        // Intersection Observer for fade animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sosModal.classList.contains('flex')) {
+                sosModal.classList.add('hidden');
+                sosModal.classList.remove('flex');
+            }
+        });
+
+        // Simulated Real-time Updates
+        function simulateBedUpdates() {
+            const bedElements = document.querySelectorAll('.hospital-card .text-center');
+            bedElements.forEach(el => {
+                if (Math.random() > 0.8) {
+                    el.style.transition = 'background-color 0.3s ease';
+                    el.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
+                    setTimeout(() => {
+                        el.style.backgroundColor = '';
+                    }, 500);
+                }
+            });
+        }
+        setInterval(simulateBedUpdates, 5000);
+    </script>
+</body>
+</html>

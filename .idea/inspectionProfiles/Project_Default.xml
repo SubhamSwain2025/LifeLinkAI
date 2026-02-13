@@ -1,0 +1,45 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="streamlit" />
+          <option value="streamlit-option-menu" />
+          <option value="streamlit-lottie" />
+          <option value="streamlit-extras" />
+          <option value="streamlit-custom-notification-box" />
+          <option value="python-docx" />
+          <option value="docx2pdf" />
+          <option value="docx2txt" />
+          <option value="python-pptx" />
+          <option value="pandas" />
+          <option value="numpy" />
+          <option value="matplotlib" />
+          <option value="seaborn" />
+          <option value="plotly" />
+          <option value="openpyxl" />
+          <option value="pillow" />
+          <option value="reportlab" />
+          <option value="nltk" />
+          <option value="spacy" />
+          <option value="scikit-learn" />
+          <option value="pdfminer.six" />
+          <option value="pypdf" />
+          <option value="pdfplumber" />
+          <option value="pdf2image" />
+          <option value="pytesseract" />
+          <option value="sqlalchemy" />
+          <option value="requests" />
+          <option value="python-dotenv" />
+          <option value="pycryptodome" />
+          <option value="selenium" />
+          <option value="webdriver-manager" />
+          <option value="chromedriver-autoinstaller" />
+          <option value="google-generativeai" />
+          <option value="openrouter" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
